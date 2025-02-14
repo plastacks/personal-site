@@ -1,0 +1,47 @@
+---
+import {
+  ProseTableOfContents,
+  ProseTableOfContentsAnchor,
+} from "@/components/prose-toc";
+import { getLangFromUrl, useTranslations } from "@/i18n/utils";
+import capitalize from "lodash-es/capitalize";
+import { slide } from "astro:transitions";
+
+interface Props {
+  tocId: string;
+  info?: {
+    author: string;
+    formattedDate: string;
+  };
+}
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<div
+  class="relative max-w-full w-[65ch] box-content px-0 md:px-8 py-4 md:py-6 bg-background mx-auto rounded-md md:border md:border-px md:shadow-sm"
+>
+  <slot name="start" class="not-prose" />
+  <article class="prose dark:prose-invert xl:prose-lg">
+    <ProseTableOfContentsAnchor id={Astro.props.tocId} />
+    {
+      Astro.props.info && (
+        <div class="not-prose w-full text-right text-sm font-light">
+          {capitalize(t("article.by"))} {Astro.props.info.author} •{" "}
+          {Astro.props.info.formattedDate}
+        </div>
+      )
+    }
+    <slot />
+  </article>
+  <div class="absolute top-0 -right-48 not-prose h-full">
+    <div class="hidden lg:block w-44 sticky top-0">
+      <ProseTableOfContents
+        client:load
+        anchorId={Astro.props.tocId}
+        tocTitle={t("article.toc")}
+      />
+    </div>
+  </div>
+</div>

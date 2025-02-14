@@ -1,0 +1,60 @@
+---
+import { buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { getLangFromUrl } from "@/i18n/utils";
+import ArticleLayout from "@/layouts/ArticleLayout.astro";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { cn } from "@/lib/utils";
+import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { ChevronLeft } from "lucide-react";
+
+export async function getStaticPaths() {
+  const pages = await getCollection("blog");
+
+  const paths = pages.map((page) => {
+    const [lang, ...slug] = page.slug.split("/");
+    return { params: { lang, slug: slug.join("/") || undefined }, props: page };
+  });
+
+  return paths;
+}
+
+const { lang } = Astro.params;
+
+const page = Astro.props;
+const formattedDate = page.data.date.toLocaleDateString(lang, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+const { Content } = await page.render();
+
+const blogURL = getRelativeLocaleUrl(lang, "Blog");
+---
+
+<BaseLayout>
+  <div transition:name="article">
+    <ArticleLayout
+      tocId={page.slug}
+      info={{ author: page.data.author, formattedDate }}
+    >
+      <div class="bg-background sticky top-0">
+        <a
+          slot="start"
+          class={cn(
+            buttonVariants({ variant: "link" }),
+            "px-0 text-foreground"
+          )}
+          href={blogURL}
+        >
+          <ChevronLeft />
+          Blog
+        </a>
+        <Separator slot="start" className="my-2" />
+      </div>
+      <Content />
+    </ArticleLayout>
+  </div>
+</BaseLayout>

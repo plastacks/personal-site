@@ -1,0 +1,175 @@
+---
+import { Header } from "@/components/header";
+import { Nav, PrimaryNavLink, ForegroundNavLink } from "@/components/nav";
+import { ModeSelector } from "@/components/mode-selector";
+import { Separator } from "@/components/ui/separator";
+import { LanguageSelector } from "@/components/lang-selector";
+import { ContactButton } from "@/components/contact-button";
+import { Home, Newspaper } from "lucide-react";
+import { getLangFromUrl, useTranslations } from "@/i18n/utils";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import { ClientRouter } from "astro:transitions";
+import { Toaster } from "react-hot-toast";
+import "@/styles/globals.css";
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const homeUrl = getRelativeLocaleUrl(lang);
+const blogURL = getRelativeLocaleUrl(lang, "Blog");
+
+const isHome = Astro.url.pathname === homeUrl;
+const isBlog = Astro.url.pathname === blogURL;
+---
+
+<html lang={lang} transition:name="root">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <meta name="msapplication-TileColor" content="#2563eb" />
+
+    <meta name="generator" content={Astro.generator} />
+    <title>{t("header.title")}</title>
+
+    <script is:inline>
+      function configureTheme() {
+        const getThemePreference = () => {
+          if (
+            typeof localStorage !== "undefined" &&
+            localStorage.getItem("theme")
+          ) {
+            return localStorage.getItem("theme");
+          }
+          return window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        };
+        const isDark = getThemePreference() === "dark";
+        document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+
+        if (typeof localStorage !== "undefined") {
+          const observer = new MutationObserver(() => {
+            const isDark = document.documentElement.classList.contains("dark");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+          });
+          observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class"],
+          });
+        }
+      }
+
+      configureTheme();
+      document.addEventListener("astro:after-swap", configureTheme);
+    </script>
+    <ClientRouter />
+  </head>
+  <body>
+    <div
+      class="bg-background min-h-dvh md:bg-muted flex flex-col gap-6 items-center w-full px-6 md:px-0"
+    >
+      <Header>
+        {t("header.title")}
+        <span slot="subtitle">
+          <strong>{t("header.subtitle.0")}</strong>
+          {t("header.subtitle.1")}
+          <strong>{t("header.subtitle.2")}</strong>
+          {t("header.subtitle.3")}
+        </span>
+      </Header>
+      <div class="flex-1 w-full">
+        <slot />
+      </div>
+      <div
+        class="sticky bottom-4 w-screen-xl mx-auto mb-4 z-10 backdrop-blur-sm rounded-full"
+      >
+        <div transition:name="nav">
+          <Nav compact="md" className="z-10">
+            <PrimaryNavLink
+              selected={isHome}
+              client:load
+              href={homeUrl}
+              label={t("nav.about")}
+            >
+              <Home slot={"icon"} />
+            </PrimaryNavLink>
+            <PrimaryNavLink
+              selected={isBlog}
+              client:load
+              href={blogURL}
+              label="Blog"
+            >
+              <Newspaper slot={"icon"} />
+            </PrimaryNavLink>
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <ForegroundNavLink
+              client:load
+              href="https://github.com/plastacks"
+              label="GitHub"
+              external
+              compact
+            >
+              <svg
+                role="img"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                aria-hidden="true"
+                slot="icon"
+              >
+                <title>GitHub</title>
+                <path
+                  d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"
+                ></path>
+              </svg>
+            </ForegroundNavLink>
+            <ContactButton
+              client:idle
+              i18n={{
+                "contact.contact.me": t("contact.contact.me"),
+                "contact.copied": t("contact.copied"),
+                "contact.send.me.an.email": t("contact.send.me.an.email"),
+              }}
+            />
+
+            <Separator orientation="vertical" className="h-6" />
+
+            <LanguageSelector
+              client:load
+              currentLang={lang}
+              i18n={{
+                "change.the.language": t(
+                  "language.selector.change.the.language"
+                ),
+                language: t("language.selector.language"),
+              }}
+            />
+            <ModeSelector
+              client:load
+              i18n={{
+                dark: t("mode.selector.dark"),
+                light: t("mode.selector.light"),
+                system: t("mode.selector.system"),
+                theme: t("mode.selector.theme"),
+              }}
+            />
+          </Nav>
+        </div>
+      </div>
+    </div>
+    <Toaster client:load />
+  </body>
+</html>
+
+<style is:global>
+  * {
+    scrollbar-width: thin;
+  }
+</style>

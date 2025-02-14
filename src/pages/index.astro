@@ -1,0 +1,18 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ArticleLayout from "@/layouts/ArticleLayout.astro";
+import { languages } from "@/i18n/ui";
+import { Content as CvEn } from "@/components/cv/en.mdx";
+
+export async function getStaticPaths() {
+  return Object.keys(languages).map((lang) => ({ params: { lang } }));
+}
+---
+
+<BaseLayout>
+  <div transition:name="article">
+    <ArticleLayout tocId="cv">
+      <CvEn />
+    </ArticleLayout>
+  </div>
+</BaseLayout>
